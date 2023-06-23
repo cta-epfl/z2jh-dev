@@ -1,0 +1,42 @@
+# This file can update the JupyterHub Helm chart's default configuration values.
+#
+# For reference see the configuration reference and default values, but make
+# sure to refer to the Helm chart version of interest to you!
+#
+# Introduction to YAML:     https://www.youtube.com/watch?v=cdLNKUoMc6c
+# Chart config reference:   https://zero-to-jupyterhub.readthedocs.io/en/stable/resources/reference.html
+# Chart default values:     https://github.com/jupyterhub/zero-to-jupyterhub-k8s/blob/HEAD/jupyterhub/values.yaml
+# Available chart versions: https://jupyterhub.github.io/helm-chart/
+#
+
+# Configure user environment 
+singleuser:
+  image:
+    # You should replace the "latest" tag with a fixed version from:
+    # https://hub.docker.com/r/jupyter/datascience-notebook/tags/
+    # Inspect the Dockerfile at:
+    # https://github.com/jupyter/docker-stacks/tree/HEAD/datascience-notebook/Dockerfile
+    name: minimal-notebook
+    tag: latest
+  # `cmd: null` allows the custom CMD of the Jupyter docker-stacks to be used
+  # which performs further customization on startup.
+  cmd: null
+
+prePuller:
+  hook:
+    enabled: false
+
+# TODO: Install additional python dependencies
+hub:
+  image:
+    name: k8s-hub 
+    tag: latest
+
+  extraConfig:
+    # 00-services-config: |
+    #   c.JupyterHub.services = [
+    #       {
+    #           'name': 'idle-culler',
+    #           'command': [sys.executable, '-m', 'poetry', 'run', 'flask', '--app=/downloadservice/downloadservice/app', 'run']
+    #       }
+    #   ]
