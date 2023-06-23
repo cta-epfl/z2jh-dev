@@ -31,8 +31,35 @@ hub:
   image:
     name: k8s-hub 
     tag: latest
+  services:
+    downloadservice:
+      url: http://hub:5000
+      command:
+        - /usr/local/bin/python3
+        - /downloadservice/downloadservice/cli.py
 
-  extraConfig:
+  networkPolicy:
+    ingress:
+      - ports:
+          - port: 5000
+        from:
+          - podSelector:
+              matchLabels:
+                hub.jupyter.org/network-access-hub: "true"
+
+  service:
+    extraPorts:
+      - port: 5000
+        targetPort: 5000
+        name: downloadservice
+  # extraConfig:
+  #   00-services-config: |
+  #     c.JupyterHub.services = [
+  #         {
+  #             'name': 'downloadservice',
+  #             'command': [sys.executable, '/downloadservice/downloadservice/cli.py']
+  #         }
+  #     ]
     # 00-services-config: |
     #   c.JupyterHub.services = [
     #       {
