@@ -28,6 +28,13 @@ prePuller:
 
 # TODO: Install additional python dependencies
 hub:
+  config:
+    GitHubOAuthenticator:
+      client_id: TODO
+      client_secret: TODO
+      oauth_callback_url: http://localhost:30000/hub/oauth_callback
+    JupyterHub:
+      authenticator_class: github
   image:
     name: k8s-hub 
     tag: latest
@@ -37,7 +44,6 @@ hub:
       command:
         - /usr/local/bin/python3
         - /downloadservice/downloadservice/cli.py
-
   networkPolicy:
     ingress:
       - ports:
@@ -46,7 +52,6 @@ hub:
           - podSelector:
               matchLabels:
                 hub.jupyter.org/network-access-hub: "true"
-
   service:
     extraPorts:
       - port: 5000
