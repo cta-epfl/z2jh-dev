@@ -29,12 +29,17 @@ prePuller:
 # TODO: Install additional python dependencies
 hub:
   config:
-    GitHubOAuthenticator:
+    # GitHubOAuthenticator:
+    #   client_id: TODO
+    #   client_secret: TODO
+    #   oauth_callback_url: http://localhost:30000/hub/oauth_callback
+    GitLabOAuthenticator:
       client_id: TODO
       client_secret: TODO
       oauth_callback_url: http://localhost:30000/hub/oauth_callback
+      gitlab_url: https://gitlab.switch.ch # http://gitlab.epfl.ch
     JupyterHub:
-      authenticator_class: github
+      authenticator_class: gitlab
   image:
     name: k8s-hub 
     tag: latest
