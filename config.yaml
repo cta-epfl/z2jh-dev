@@ -39,10 +39,22 @@ hub:
       oauth_callback_url: http://localhost:30000/hub/oauth_callback
       gitlab_url: https://gitlab.switch.ch # http://gitlab.epfl.ch
     JupyterHub:
-      authenticator_class: gitlab
+      authenticator_class: gitlab #test
   image:
     name: k8s-hub 
     tag: latest
+  loadRoles:
+    user:
+      scopes:
+        - self
+    downloadservice:
+      users:
+        - volodymyr.savchenko
+        - andrii.neronov
+        - pavlo.kashko
+        - bastien.wermeille
+      scopes:
+        - "access:services!service=downloadservice"
   services:
     downloadservice:
       url: http://hub:5000
