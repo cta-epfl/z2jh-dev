@@ -39,7 +39,7 @@ hub:
       oauth_callback_url: http://localhost:30000/hub/oauth_callback
       gitlab_url: https://gitlab.switch.ch # http://gitlab.epfl.ch
     JupyterHub:
-      authenticator_class: gitlab #test
+      authenticator_class: gitlab
   image:
     name: k8s-hub 
     tag: latest
@@ -52,7 +52,7 @@ hub:
         - volodymyr.savchenko
         - andrii.neronov
         - pavlo.kashko
-        - bastien.wermeille
+        # - bastien.wermeille
       scopes:
         - "access:services!service=downloadservice"
   services:
@@ -74,6 +74,10 @@ hub:
       - port: 5000
         targetPort: 5000
         name: downloadservice
+  extraFiles:
+    errorTemplate:
+      mountPath: /usr/local/share/jupyterhub/templates/error.html
+
   # extraConfig:
   #   00-services-config: |
   #     c.JupyterHub.services = [

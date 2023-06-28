@@ -12,7 +12,7 @@ Just run the following :
 And finally deploy this helm charts :
 
 ```sh
-helm upgrade --cleanup-on-fail --install hub jupyterhub/jupyterhub --version=2.0.0 --values config.yaml --timeout 200s
+helm upgrade --set-file hub.extraFiles.errorTemplate.stringData=./templates/error.html --cleanup-on-fail --install hub jupyterhub/jupyterhub --version=2.0.0 --values config.yaml --timeout 200s
 ```
 
 or in a custom namespace
