@@ -8,16 +8,9 @@ FROM jupyter/datascience-notebook:latest
 
 # install additional package...
 
-COPY ctadata /ctadata
-RUN pip install --no-cache-dir /ctadata
-
-USER root
-RUN rm -rf /ctadata
-USER 1000
+RUN pip install ctadata "git+https://github.com/cta-epfl/ctadata.git"
 
 # set the default command of the image,
 # if you want to launch more complex startup than the default `juptyerhub-singleuser`.
 # To launch an image's custom CMD instead of the default `jupyterhub-singleuser`
 # set `singleuser.cmd: null` in your config.yaml.
-
-WORKDIR "${HOME}"
