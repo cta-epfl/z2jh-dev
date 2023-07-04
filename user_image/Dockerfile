@@ -14,3 +14,5 @@ RUN pip install ctadata "git+https://github.com/cta-epfl/ctadata.git"
 # if you want to launch more complex startup than the default `juptyerhub-singleuser`.
 # To launch an image's custom CMD instead of the default `jupyterhub-singleuser`
 # set `singleuser.cmd: null` in your config.yaml.
+
+WORKDIR "${HOME}"

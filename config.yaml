@@ -16,8 +16,8 @@ singleuser:
     # https://hub.docker.com/r/jupyter/datascience-notebook/tags/
     # Inspect the Dockerfile at:
     # https://github.com/jupyter/docker-stacks/tree/HEAD/datascience-notebook/Dockerfile
-    name: minimal-notebook
-    tag: latest
+    name: ghcr.io/cta-epfl/datascience-notebook
+    tag: main
   # `cmd: null` allows the custom CMD of the Jupyter docker-stacks to be used
   # which performs further customization on startup.
   cmd: null
@@ -41,8 +41,8 @@ hub:
     JupyterHub:
       authenticator_class: gitlab
   image:
-    name: k8s-hub 
-    tag: latest
+    name: ghcr.io/cta-epfl/k8s-hub 
+    tag: main
   loadRoles:
     user:
       scopes:
