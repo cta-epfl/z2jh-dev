@@ -41,7 +41,7 @@ hub:
       allowed_users:
         - volodymyr.savchenko
         - andrii.neronov
-        - pavlo.kashko
+        - pavlo.kashkot
         - bastien.wermeille
     # JupyterHub:
     #   authenticator_class: gitlab
