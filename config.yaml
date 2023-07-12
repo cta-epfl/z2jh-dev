@@ -30,12 +30,12 @@ prePuller:
 hub:
   config:
     # GitHubOAuthenticator:
-    #   client_id: 21TODO3b
-    #   client_secret: 43TODO
+    #   client_id: TODO
+    #   client_secret: TODO
     #   oauth_callback_url: http://localhost:30000/hub/github/oauth_callback
     GitLabOAuthenticator:
-      client_id: adTODO8b
-      client_secret: 2fTODO
+      client_id: TODO
+      client_secret: TODO
       oauth_callback_url: http://localhost:30000/hub/gitlab/oauth_callback
       gitlab_url: https://gitlab.switch.ch # http://gitlab.epfl.ch
       allowed_users:
@@ -117,16 +117,12 @@ hub:
           def __init__(self, *arg, **kwargs):
               super().__init__(*arg, **kwargs)
               self._authenticators = []
-              print(self.authenticators)
               for (
                   authenticator_klass,
                   authenticator_url_scope,
                   authenticator_configuration,
               ) in self.authenticators:
                   configuration = self.trait_values()
-                  # Remove this one as it will overwrite the value if the authenticator_klass
-                  # makes it configurable and the default value is used (take a look at
-                  # GoogleOAuthenticator for example).
                   configuration.pop("login_service")
 
                   service_name = authenticator_configuration.pop("service_name", None)
