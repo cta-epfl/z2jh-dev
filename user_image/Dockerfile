@@ -7,8 +7,8 @@ FROM jupyter/datascience-notebook:latest
 # https://github.com/jupyter/docker-stacks/tree/HEAD/minimal-notebook/Dockerfile
 
 # install additional package...
-
-RUN pip install ctadata "git+https://github.com/cta-epfl/ctadata.git"
+COPY ctadata /ctadata
+RUN pip install /ctadata
 
 # set the default command of the image,
 # if you want to launch more complex startup than the default `juptyerhub-singleuser`.

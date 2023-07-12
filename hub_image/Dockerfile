@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM jupyterhub/k8s-hub:3.0.0-beta.1
+FROM jupyterhub/k8s-hub:3.0.0-beta.3
 
 # install required dependencies for services
 USER root
@@ -21,7 +21,7 @@ WORKDIR /downloadservice
 USER root
 RUN poetry env use system
 RUN poetry config virtualenvs.create false
-RUN poetry install --without dev --compile
+RUN poetry install --without test --compile
 USER jovyan
 WORKDIR /srv/jupyterhub
 

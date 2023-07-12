@@ -9,15 +9,15 @@
 # Available chart versions: https://jupyterhub.github.io/helm-chart/
 #
 
-# Configure user environment 
+# Configure user environment
 singleuser:
   image:
     # You should replace the "latest" tag with a fixed version from:
     # https://hub.docker.com/r/jupyter/datascience-notebook/tags/
     # Inspect the Dockerfile at:
     # https://github.com/jupyter/docker-stacks/tree/HEAD/datascience-notebook/Dockerfile
-    name: ghcr.io/cta-epfl/datascience-notebook
-    tag: main
+    name: datascience-notebook
+    tag: 0.0.1-dev
   # `cmd: null` allows the custom CMD of the Jupyter docker-stacks to be used
   # which performs further customization on startup.
   cmd: null
@@ -30,19 +30,24 @@ prePuller:
 hub:
   config:
     # GitHubOAuthenticator:
-    #   client_id: TODO
-    #   client_secret: TODO
-    #   oauth_callback_url: http://localhost:30000/hub/oauth_callback
+    #   client_id: 21TODO3b
+    #   client_secret: 43TODO
+    #   oauth_callback_url: http://localhost:30000/hub/github/oauth_callback
     GitLabOAuthenticator:
-      client_id: TODO
-      client_secret: TODO
-      oauth_callback_url: http://localhost:30000/hub/oauth_callback
+      client_id: adTODO8b
+      client_secret: 2fTODO
+      oauth_callback_url: http://localhost:30000/hub/gitlab/oauth_callback
       gitlab_url: https://gitlab.switch.ch # http://gitlab.epfl.ch
-    JupyterHub:
-      authenticator_class: gitlab
+      allowed_users:
+        - volodymyr.savchenko
+        - andrii.neronov
+        - pavlo.kashko
+        - bastien.wermeille
+    # JupyterHub:
+    #   authenticator_class: gitlab
   image:
-    name: ghcr.io/cta-epfl/k8s-hub 
-    tag: main
+    name: k8s-hub
+    tag: 0.0.1-dev
   loadRoles:
     user:
       scopes:
@@ -62,6 +67,8 @@ hub:
         - /usr/local/bin/python3
         - /downloadservice/downloadservice/cli.py
   networkPolicy:
+    allowedIngressPorts:
+      - 5000
     ingress:
       - ports:
           - port: 5000
@@ -69,6 +76,7 @@ hub:
           - podSelector:
               matchLabels:
                 hub.jupyter.org/network-access-hub: "true"
+                hub.jupyter.org/network-access-singleuser: "true"
   service:
     extraPorts:
       - port: 5000
@@ -78,18 +86,126 @@ hub:
     errorTemplate:
       mountPath: /usr/local/share/jupyterhub/templates/error.html
 
-  # extraConfig:
-  #   00-services-config: |
-  #     c.JupyterHub.services = [
-  #         {
-  #             'name': 'downloadservice',
-  #             'command': [sys.executable, '/downloadservice/downloadservice/cli.py']
-  #         }
-  #     ]
-    # 00-services-config: |
-    #   c.JupyterHub.services = [
-    #       {
-    #           'name': 'idle-culler',
-    #           'command': [sys.executable, '-m', 'poetry', 'run', 'flask', '--app=/downloadservice/downloadservice/app', 'run']
-    #       }
-    #   ]
+  extraConfig:
+    auth.py: |
+      from jupyterhub.auth import Authenticator
+      from jupyterhub.utils import url_path_join
+      from traitlets import List, TraitType
+
+      class URLScopeMixin(object):
+          """Mixin class that adds the"""
+          url_scope = ""
+
+          def login_url(self, base_url):
+              return super().login_url(url_path_join(base_url, self.url_scope))
+
+          def logout_url(self, base_url):
+              return super().logout_url(url_path_join(base_url, self.url_scope))
+
+          def get_handlers(self, app):
+              handlers = super().get_handlers(app)
+              return [
+                  (url_path_join(self.url_scope, path), handler) for path, handler in handlers
+              ]
+
+      class MultiAuthenticator(Authenticator):
+          """Wrapper class that allows to use more than one authentication provider
+          for JupyterHub"""
+
+          authenticators = List(help="The subauthenticators to use", config=True)
+
+          def __init__(self, *arg, **kwargs):
+              super().__init__(*arg, **kwargs)
+              self._authenticators = []
+              print(self.authenticators)
+              for (
+                  authenticator_klass,
+                  authenticator_url_scope,
+                  authenticator_configuration,
+              ) in self.authenticators:
+                  configuration = self.trait_values()
+                  # Remove this one as it will overwrite the value if the authenticator_klass
+                  # makes it configurable and the default value is used (take a look at
+                  # GoogleOAuthenticator for example).
+                  configuration.pop("login_service")
+
+                  service_name = authenticator_configuration.pop("service_name", None)
+                  configuration.update(authenticator_configuration)
+                  class WrapperAuthenticator(URLScopeMixin, authenticator_klass):
+                      url_scope = authenticator_url_scope
+
+                  authenticator = WrapperAuthenticator(**configuration)
+
+                  traits = authenticator.traits()
+                  for key, value in authenticator_configuration.items():
+                      trait = traits.get(key, None)
+                      if hasattr(authenticator, key) and trait and trait.this_class == Authenticator and trait.metadata.get('config', False):
+                          setattr(authenticator, key, value)
+
+                  if service_name:
+                      authenticator.service_name = service_name
+
+                  self._authenticators.append(authenticator)
+
+          def get_custom_html(self, base_url):
+              """Re-implementation generating one login button per configured authenticator"""
+
+              html = []
+              for authenticator in self._authenticators:
+                  if hasattr(authenticator, "service_name"):
+                      login_service = getattr(authenticator, "service_name")
+                  else:
+                      login_service = authenticator.login_service
+
+                  url = authenticator.login_url(base_url)
+
+                  html.append(
+                      f"""
+                      <div class="service-login">
+                        <a role="button" class='btn btn-jupyter btn-lg' href='{url}'>
+                          Sign in with {login_service}
+                        </a>
+                      </div>
+                      """
+                  )
+              return "\n".join(html)
+
+          def get_handlers(self, app):
+              """Re-implementation that will return the handlers for all configured
+              authenticators"""
+
+              routes = []
+              for _authenticator in self._authenticators:
+                  for path, handler in _authenticator.get_handlers(app):
+
+                      class WrapperHandler(handler):
+                          """'Real' handler configured for each authenticator. This allows
+                          to reuse the same authenticator class configured for different
+                          services (for example GitLab.com, gitlab.example.com)
+                          """
+
+                          authenticator = _authenticator
+
+                      routes.append((path, WrapperHandler))
+              return routes
+
+      from oauthenticator.github import GitHubOAuthenticator
+      from oauthenticator.gitlab import GitLabOAuthenticator
+      c.MultiAuthenticator.authenticators = [
+          (GitHubOAuthenticator, '/github', {
+              'service_name': 'github',
+              'client_id': 'TODO',
+              'client_secret': 'TODO',
+              'oauth_callback_url': 'http://localhost:30000/hub/github/oauth_callback',
+              'allowed_users': {'ph0tonic'},
+          }),
+          (GitLabOAuthenticator, '/gitlab', {
+              'service_name': ' gitlab',
+              'client_id': 'TODO',
+              'client_secret': 'TODO',
+              'oauth_callback_url': 'http://localhost:30000/hub/gitlab/oauth_callback',
+              'gitlab_url': 'https://gitlab.switch.ch',
+              'allowed_users': {'volodymyr.savchenko', 'andrii.neronov', 'pavlo.kashko', 'bastien.wermeille'},
+          }),
+      ]
+      c.JupyterHub.authenticator_class = MultiAuthenticator
