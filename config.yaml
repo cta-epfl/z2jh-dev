@@ -57,7 +57,7 @@ hub:
       mountPath: /usr/local/share/jupyterhub/templates/error.html
 
   extraConfig:
-    spawner.py: |
+    spawner.py: |      
       import os
       import json
       import re
@@ -92,77 +92,6 @@ hub:
               config=True,
               help="""The class to wrap for spawning single-user servers.
                       Should be a subclass of Spawner.
-          authenticators = List(help="The subauthenticators to use", config=True)
-
-          def __init__(self, *arg, **kwargs):
-              super().__init__(*arg, **kwargs)
-              self._authenticators = []
-              for (
-                  authenticator_klass,
-                  authenticator_url_scope,
-                  authenticator_configuration,
-              ) in self.authenticators:
-                  configuration = self.trait_values()
-                  configuration.pop("login_service")
-
-                  service_name = authenticator_configuration.pop("service_name", None)
-                  configuration.update(authenticator_configuration)
-                  class WrapperAuthenticator(URLScopeMixin, authenticator_klass):
-                      url_scope = authenticator_url_scope
-                      username_prefix = service_name+'_'
-
-                      async def authenticate(self, handler, data=None, **kwargs):
-                          response = await super().authenticate(handler, data, **kwargs)
-                          if response is None:
-                              return None
-                          elif type(response) == str:
-                              return self.username_prefix+response
-                          else:
-                              response['name'] = self.username_prefix+response['name']
-                              return response
-
-                      # def normalize_username(self, username):
-                      #     return self.username_prefix+super().normalize_username(username)
-
-                      def check_allowed(self, username, authentication=None):
-                          return super().check_allowed(username.removeprefix(self.username_prefix), authentication)
-
-                      def check_blocked_users(self, username, authentication=None):
-                          return super().check_allowed(username.removeprefix(self.username_prefix), authentication)
-
-                  authenticator = WrapperAuthenticator(**configuration)
-
-                  traits = authenticator.traits()
-                  for key, value in authenticator_configuration.items():
-                      trait = traits.get(key, None)
-                      if hasattr(authenticator, key) and trait and trait.this_class == Authenticator and trait.metadata.get('config', False):
-                          setattr(authenticator, key, value)
-
-                  if service_name:
-                      authenticator.service_name = service_name
-
-                  self._authenticators.append(authenticator)
-
-          def get_custom_html(self, base_url):
-              """Re-implementation generating one login button per configured authenticator"""
-
-              html = []
-              for authenticator in self._authenticators:
-                  if hasattr(authenticator, "service_name"):
-                      login_service = getattr(authenticator, "service_name")
-                  else:
-                      login_service = authenticator.login_service
-
-                  url = authenticator.login_url(base_url)
-
-                  html.append(
-                      f"""
-                      <div class="service-login">
-                        <a role="button" class='btn btn-jupyter btn-lg' href='{url}'>
-                          Sign in with {login_service}
-                        </a>
-                      </div>
-
                       """
               )
 
