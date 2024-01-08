@@ -19,8 +19,16 @@
   {% endif %}
   {% if status_code == 403 %}
   <p>
-    Please contact <a href="mailto:xxx@epfl.ch">XXX</a> to get access.
+    Please use <a href="https://docs.google.com/forms/d/e/1FAIpQLSdZP09EwOmoVX8G-IVhvVGwoDy-Tt79qu7h2CcP0r-NGqaOXQ/viewform">resource request form</a> to get access to CTA resources at CSCS.
   </p>
+  <p>
+    Please see <a href="https://ctao.ch/">CTAO CH DC website</a> (restricted) for more information.
+  </p>
+  {% if user is defined and user.name is defined %}
+  <p>You are currently logged in as <em>{{user.name}}</em></p>
+  {% else %}
+  <p>You are currently not logged in.</p>
+  {% endif %}
   {% endif %}
   {% if message_html %}
   <p>

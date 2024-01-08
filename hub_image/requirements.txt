@@ -1,0 +1,5 @@
+# wrapspawner ~= 1.0.1
+# sentry_sdk ~= 1.29.2
+# TODO: Specify version once tags configured ~=1.0.0
+# batchspawner @ git+https://github.com/cta-epfl/batchspawner.git@master
+jupyterhub-multiauthenticator ~= 0.2.0
