@@ -1,0 +1,6 @@
+traefik:
+  service:
+    type: ClusterIP
+gateway:
+  auth:
+    type: jupyterhub

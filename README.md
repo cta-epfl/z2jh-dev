@@ -22,6 +22,12 @@ or in a custom namespace
 helm upgrade --cleanup-on-fail --namespace your-namespace --create-namespace --install hub jupyterhub/jupyterhub --version=3.2.1 --values config.yaml --timeout 200s
 ```
 
+For dask :
+
+```sh
+helm install --version 2024.1.1 myrelease dask/dask --values dask_config.yaml
+```
+
 ## Oauthentication
 
 To use, please create an oauth app using a provider and configure the `client id` and `client secret` in the helm charts.
